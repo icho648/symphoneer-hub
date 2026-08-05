@@ -76,7 +76,7 @@ header {
   align-items: end;
   margin-bottom: 2rem;
 }
-header h1 {
+.shell header h1 {
   font-size: clamp(2rem, 5vw, 3.7rem);
   margin: 0;
   letter-spacing: -0.05em;
