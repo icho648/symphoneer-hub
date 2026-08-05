@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from "express";
 import { RepositoryError } from "@symphoneer-hub/database";
+import type { NextFunction, Request, Response } from "express";
 
 export class ApiError extends Error {
   readonly status: number;

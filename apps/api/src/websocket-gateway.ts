@@ -3,9 +3,9 @@ import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import {
   ConnectorToHubMessageSchema,
+  digestSecret,
   HubToConnectorMessageSchema,
   RuntimeSnapshotSchema,
-  digestSecret,
   redact,
 } from "@symphoneer-hub/contracts";
 import type { HubRepository } from "@symphoneer-hub/database";

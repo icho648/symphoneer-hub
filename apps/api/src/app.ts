@@ -1,27 +1,23 @@
-import cors from "cors";
-import express, { type Express, type Request } from "express";
-import { pinoHttp } from "pino-http";
 import {
   CreateInstallationSchema,
   CreatePairingCodeSchema,
-  PairConnectorSchema,
-  PauseAttemptSchema,
   createOpaqueToken,
   createPairingCode,
   digestSecret,
   normalizePairingCode,
-  redact,
+  PairConnectorSchema,
+  PauseAttemptSchema,
   type RuntimeCommand,
+  redact,
 } from "@symphoneer-hub/contracts";
 import type { HubRepository } from "@symphoneer-hub/database";
-import type {
-  CommandQueue,
-  FixedWindowRateLimiter,
-  PresenceStore,
-} from "@symphoneer-hub/relay";
+import type { CommandQueue, FixedWindowRateLimiter, PresenceStore } from "@symphoneer-hub/relay";
+import cors from "cors";
+import express, { type Express, type Request } from "express";
 import type { Logger } from "pino";
-import type { ApiConfig } from "./config.js";
+import { pinoHttp } from "pino-http";
 import { type AuthenticatedRequest, createAuthMiddleware } from "./auth.js";
+import type { ApiConfig } from "./config.js";
 import { ApiError, errorHandler } from "./errors.js";
 
 export type ApiDependencies = {
@@ -43,12 +39,7 @@ function parseBody<T>(
   return parsed.data;
 }
 
-function routeParam(
-  request: Request,
-  name: string,
-  code: string,
-  message: string,
-): string {
+function routeParam(request: Request, name: string, code: string, message: string): string {
   const value = request.params[name];
   if (typeof value !== "string" || value.length === 0) {
     throw new ApiError(400, code, message);
@@ -85,8 +76,7 @@ export function createApiApp(dependencies: ApiDependencies): Express {
       serializers: {
         req: (request) => ({ method: request.method, url: request.url }),
         res: (response) => ({ statusCode: response.statusCode }),
-        err: (error) =>
-          redact({ type: error.type, message: error.message, stack: error.stack }),
+        err: (error) => redact({ type: error.type, message: error.message, stack: error.stack }),
       },
     }),
   );
@@ -177,17 +167,12 @@ export function createApiApp(dependencies: ApiDependencies): Express {
     });
   });
 
-  app.get(
-    "/v1/installations/:installationId/snapshot",
-    authenticate,
-    async (request, response) => {
-      const user = (request as AuthenticatedRequest).user;
-      const snapshot = await repository.getSnapshot(user.id, installationId(request));
-      if (!snapshot)
-        throw new ApiError(404, "snapshot_not_found", "runtime snapshot not found");
-      response.json(snapshot);
-    },
-  );
+  app.get("/v1/installations/:installationId/snapshot", authenticate, async (request, response) => {
+    const user = (request as AuthenticatedRequest).user;
+    const snapshot = await repository.getSnapshot(user.id, installationId(request));
+    if (!snapshot) throw new ApiError(404, "snapshot_not_found", "runtime snapshot not found");
+    response.json(snapshot);
+  });
 
   app.post(
     "/v1/installations/:installationId/commands/pause-attempt",
@@ -197,11 +182,7 @@ export function createApiApp(dependencies: ApiDependencies): Express {
       const user = (request as AuthenticatedRequest).user;
       const idempotencyKey = request.header("idempotency-key")?.trim();
       if (!idempotencyKey)
-        throw new ApiError(
-          400,
-          "idempotency_key_required",
-          "Idempotency-Key header is required",
-        );
+        throw new ApiError(400, "idempotency_key_required", "Idempotency-Key header is required");
       const command: RuntimeCommand = {
         kind: "pause_attempt",
         idempotencyKey,
@@ -257,11 +238,7 @@ export function createApiApp(dependencies: ApiDependencies): Express {
         "invalid_command",
         "command ID is required",
       );
-      const row = await repository.getCommandForOwner(
-        user.id,
-        installationId(request),
-        commandId,
-      );
+      const row = await repository.getCommandForOwner(user.id, installationId(request), commandId);
       if (!row) throw new ApiError(404, "command_not_found", "command not found");
       response.json({ command: row });
     },

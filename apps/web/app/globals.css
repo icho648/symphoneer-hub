@@ -59,7 +59,7 @@ button.secondary {
   line-height: 1.6;
 }
 .eyebrow {
-  color: var(--accent) !important;
+  color: var(--accent);
   letter-spacing: 0.18em;
   font-size: 0.72rem;
   font-weight: 800;
