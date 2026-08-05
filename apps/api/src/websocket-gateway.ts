@@ -3,14 +3,14 @@ import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import {
   ConnectorToHubMessageSchema,
-  digestSecret,
   HubToConnectorMessageSchema,
   RuntimeSnapshotSchema,
+  digestSecret,
   redact,
 } from "@symphoneer-hub/contracts";
 import type { HubRepository } from "@symphoneer-hub/database";
 import type { CommandSubscriber, PresenceStore } from "@symphoneer-hub/relay";
-import type pino from "pino";
+import type { Logger } from "pino";
 import { WebSocket, WebSocketServer } from "ws";
 
 export type GatewayDependencies = {
@@ -18,7 +18,7 @@ export type GatewayDependencies = {
   presence: PresenceStore;
   subscriber: CommandSubscriber;
   deviceTokenPepper: string;
-  logger: pino.Logger;
+  logger: Logger;
 };
 
 type Connection = {
@@ -38,8 +38,11 @@ function tokenFromRequest(request: IncomingMessage): string | null {
 export class ConnectorGateway {
   private readonly server = new WebSocketServer({ noServer: true, maxPayload: 1024 * 1024 });
   private readonly connections = new Map<string, Connection>();
+  private readonly dependencies: GatewayDependencies;
 
-  constructor(private readonly dependencies: GatewayDependencies) {}
+  constructor(dependencies: GatewayDependencies) {
+    this.dependencies = dependencies;
+  }
 
   async start(): Promise<void> {
     await this.dependencies.subscriber.subscribe((installationId, payload) => {
