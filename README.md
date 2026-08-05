@@ -73,11 +73,11 @@ Application tables live in the private `hub` schema. The migration revokes acces
 ## Commands
 
 ```bash
-pnpm check              # format, typecheck, project rules, tests and builds
-pnpm check:offline      # dependency-free checks available in restricted environments
-pnpm check:smoke        # isolated fixture verification for Symphoneer V1 E2E
-pnpm verify:symphoneer # chooses check:smoke for fixture-only diffs, otherwise full check
-pnpm db:new add_feature   # create an immutable SQL migration
+pnpm check               # format, typecheck, project rules, tests and builds
+pnpm check:offline       # dependency-free checks available in restricted environments
+pnpm check:smoke         # isolated fixture verification for Symphoneer V1 E2E
+pnpm verify:symphoneer   # chooses check:smoke for fixture-only diffs, otherwise full check
+pnpm db:new add_feature  # create an immutable SQL migration
 pnpm db:migrate
 ```
 
@@ -93,9 +93,10 @@ pnpm db:migrate
 Do not deploy the API as a short-lived serverless function: Connector WebSockets, Redis
 subscriptions, and graceful delivery acknowledgements require a long-running process.
 
-The repository does not include a generated lockfile in this delivery because the execution
-environment could not reach npm. Generate and commit `pnpm-lock.yaml` during the first real
-install, then change CI to `pnpm install --frozen-lockfile`. See [Validation](VALIDATION.md).
+The repository includes a committed `pnpm-lock.yaml`. CI uses a frozen install, starts
+PostgreSQL and Redis services, applies the SQL migrations, and runs the complete `pnpm check`
+gate. See [Validation](VALIDATION.md) for the distinction between CI-verified behavior and the
+remaining live-integration checks.
 
 See [Architecture](docs/ARCHITECTURE.md), [Threat model](docs/THREAT_MODEL.md), and
 [Runbook](docs/RUNBOOK.md).
