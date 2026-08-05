@@ -1,0 +1,104 @@
+name: Apply API TypeScript fixes
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-api-types.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile --reporter=append-only
+      - name: Apply exact API type fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          errors = Path('apps/api/src/errors.ts')
+          text = errors.read_text()
+          old = '''export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}'''
+          new = '''export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.status = status;
+    this.code = code;
+    this.name = "ApiError";
+  }
+}'''
+          assert old in text, 'missing ApiError parameter properties'
+          errors.write_text(text.replace(old, new))
+
+          app = Path('apps/api/src/app.ts')
+          text = app.read_text()
+          text = text.replace(
+              'import express, { type Request } from "express";',
+              'import express, { type Express, type Request } from "express";',
+          )
+          text = text.replace(
+              'import pinoHttp from "pino-http";',
+              'import { pinoHttp } from "pino-http";',
+          )
+          old = '''function installationId(request: Request): string {
+  const value = request.params.installationId;
+  if (!value) throw new ApiError(400, "invalid_installation", "installation ID is required");
+  return value;
+}'''
+          new = '''function installationId(request: Request): string {
+  const value = request.params.installationId;
+  if (typeof value !== "string" || value.length === 0) {
+    throw new ApiError(400, "invalid_installation", "installation ID is required");
+  }
+  return value;
+}'''
+          assert old in text, 'missing installationId helper'
+          text = text.replace(old, new)
+          text = text.replace(
+              'export function createApiApp(dependencies: ApiDependencies) {',
+              'export function createApiApp(dependencies: ApiDependencies): Express {',
+          )
+          old = '''      const commandId = request.params.commandId;
+      if (!commandId) throw new ApiError(400, "invalid_command", "command ID is required");'''
+          new = '''      const commandId = request.params.commandId;
+      if (typeof commandId !== "string" || commandId.length === 0) {
+        throw new ApiError(400, "invalid_command", "command ID is required");
+      }'''
+          assert old in text, 'missing commandId validation'
+          app.write_text(text.replace(old, new))
+          PY
+          pnpm exec biome check --write apps/api/src/app.ts apps/api/src/errors.ts
+          pnpm --filter @symphoneer-hub/api check:types
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/api/src/app.ts apps/api/src/errors.ts
+          git commit -m 'fix API TypeScript compatibility'
+          git push origin HEAD:main
