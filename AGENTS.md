@@ -18,5 +18,4 @@ Local Symphoneer Runtime remains authoritative.
 
 ## Verification
 
-Run `pnpm check` for production changes. Issues explicitly marked as V1 smoke-fixture tasks may
-change only `fixtures/smoke-app/**` and run `pnpm check:smoke`.
+Run `pnpm check` for every change.

@@ -15,11 +15,10 @@ The `main` branch completed the full CI gate successfully with:
 - TypeScript builds for the API, Connector, Worker, contracts, database, and relay packages;
 - Node tests covering pairing-code normalization and HMAC storage, secret redaction, retry
   backoff and capping, command transitions, expiry, and semantic idempotency reuse;
-- deterministic smoke-fixture tests;
 - the Next.js production build.
 
-The successful full gate ran against commit
-`a2ff3ea9ce00299b58aa33eeba209432a49b3d94` before the documentation-only follow-up.
+Deterministic orchestration fixtures are maintained and validated independently in
+`icho648/symphoneer-fixtures`; they are not part of the Hub CI gate.
 
 ## Still requires live integration
 
