@@ -11,11 +11,9 @@ const required = [
   "packages/contracts/src/index.ts",
   "packages/database/src/schema.ts",
   "packages/relay/src/index.ts",
-  "fixtures/smoke-app/src/counter.ts",
   "docs/ARCHITECTURE.md",
   "docs/RUNBOOK.md",
   "VALIDATION.md",
-  "scripts/verify-symphoneer.mjs",
   "scripts/new-migration.mjs",
   "packages/database/migrations/0000_initial.sql",
 ];
@@ -58,8 +56,8 @@ const workflow = await readFile(new URL("../.symphoneer/WORKFLOW.md", import.met
 if (!workflow.includes("repo: icho648/symphoneer-hub")) {
   throw new Error("WORKFLOW.md must target icho648/symphoneer-hub");
 }
-if (!workflow.includes("argv: [pnpm, verify:symphoneer]")) {
-  throw new Error("WORKFLOW.md must use scope-aware Symphoneer verification");
+if (!workflow.includes("argv: [pnpm, check]")) {
+  throw new Error("WORKFLOW.md must use the complete Hub verification gate");
 }
 
 console.log("project structure and authority boundaries are valid");

@@ -21,14 +21,13 @@ symphoneer:
     excluded_labels: [symphoneer:review]
   verification:
     - id: check
-      argv: [pnpm, verify:symphoneer]
+      argv: [pnpm, check]
       cwd: .
       timeout_ms: 600000
 ---
 
 Implement {{ issue.identifier }}: {{ issue.title }}.
 
-Keep the change inside the issue scope. Fixture issues must only modify
-`fixtures/smoke-app/**`; production changes receive the full Hub verification automatically.
-Do not weaken authentication, device isolation, idempotency, optimistic concurrency, or the
-local Runtime authority boundary. Run the configured verification and stop for human review.
+Keep the change inside the issue scope. Do not weaken authentication, device isolation,
+idempotency, optimistic concurrency, durable command delivery, or the local Runtime authority
+boundary. Run the configured verification and stop for human review.

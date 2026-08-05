@@ -15,8 +15,6 @@ The first vertical slice supports:
 4. Runtime snapshot and payload-free event-summary synchronization without uploading source code or raw provider payloads.
 5. Remote `pause_attempt` delivery with idempotency keys, optimistic preconditions, expiry,
    persistence, retries, and audit logs.
-6. A deterministic `fixtures/smoke-app` used by Symphoneer V1 E2E without requiring Redis,
-   PostgreSQL, cloud credentials, or the Hub production modules.
 
 ## Authority boundary
 
@@ -38,7 +36,7 @@ Requirements: Node.js 22.18+, pnpm 11, Docker with Compose.
 ```bash
 corepack enable
 cp .env.example .env
-pnpm install
+pnpm install --frozen-lockfile
 docker compose up -d
 pnpm db:migrate
 pnpm dev
@@ -75,8 +73,6 @@ Application tables live in the private `hub` schema. The migration revokes acces
 ```bash
 pnpm check               # format, typecheck, project rules, tests and builds
 pnpm check:offline       # dependency-free checks available in restricted environments
-pnpm check:smoke         # isolated fixture verification for Symphoneer V1 E2E
-pnpm verify:symphoneer   # chooses check:smoke for fixture-only diffs, otherwise full check
 pnpm db:new add_feature  # create an immutable SQL migration
 pnpm db:migrate
 ```
@@ -97,6 +93,9 @@ The repository includes a committed `pnpm-lock.yaml`. CI uses a frozen install, 
 PostgreSQL and Redis services, applies the SQL migrations, and runs the complete `pnpm check`
 gate. See [Validation](VALIDATION.md) for the distinction between CI-verified behavior and the
 remaining live-integration checks.
+
+Deterministic Symphoneer E2E fixtures are maintained separately in
+[`icho648/symphoneer-fixtures`](https://github.com/icho648/symphoneer-fixtures).
 
 See [Architecture](docs/ARCHITECTURE.md), [Threat model](docs/THREAT_MODEL.md), and
 [Runbook](docs/RUNBOOK.md).
