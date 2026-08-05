@@ -50,15 +50,11 @@ jobs:
         shell: bash
         run: |
           set +e
-          pnpm install 2>&1 | tee /tmp/pnpm-install.log
+          pnpm install --reporter=append-only 2>&1 | tee /tmp/pnpm-install.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            tail -n 40 /tmp/pnpm-install.log | while IFS= read -r line; do
-              line=${line//'%'/'%25'}
-              line=${line//$'\r'/'%0D'}
-              line=${line//$'\n'/'%0A'}
-              printf '::error::%s\n' "$line"
-            done
+            encoded=$(tail -c 6000 /tmp/pnpm-install.log | base64 -w0)
+            printf '::error title=pnpm-install-log::%s\n' "$encoded"
             exit "$status"
           fi
       - run: pnpm db:migrate
