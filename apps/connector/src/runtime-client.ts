@@ -1,31 +1,30 @@
 import {
-  type LocalRuntimeCommandResult,
   LocalRuntimeCommandResultSchema,
-  type LocalRuntimeEvent,
   LocalRuntimeEventSchema,
-  type LocalRuntimeSnapshot,
   LocalRuntimeSnapshotSchema,
+  type LocalRuntimeCommandResult,
+  type LocalRuntimeEvent,
+  type LocalRuntimeSnapshot,
   type RuntimeCommand,
 } from "@symphoneer-hub/contracts";
 
 export class RuntimeClientError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
     this.name = "RuntimeClientError";
   }
 }
 
 export class RuntimeClient {
   private readonly baseUrl: string;
+  private readonly request: typeof fetch;
 
-  constructor(
-    baseUrl: string,
-    private readonly request: typeof fetch = fetch,
-  ) {
+  constructor(baseUrl: string, request: typeof fetch = fetch) {
     const url = new URL(baseUrl);
     if (
       url.protocol !== "http:" ||
@@ -34,6 +33,7 @@ export class RuntimeClient {
       throw new RuntimeClientError(0, "unsafe_runtime_url", "Runtime URL must be loopback HTTP");
     }
     this.baseUrl = url.href.replace(/\/$/, "");
+    this.request = request;
   }
 
   snapshot(): Promise<LocalRuntimeSnapshot> {
