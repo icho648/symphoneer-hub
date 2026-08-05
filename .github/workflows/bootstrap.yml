@@ -22,8 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .bootstrap/chunk.* > /tmp/symphoneer-hub.zip.b64
-          printf '%s  %s\n' '07e2e14b429f2b9f79c9c3c702c4362c74aa81f3ffa0374f079054f300238d4e' '/tmp/symphoneer-hub.zip.b64' | sha256sum --check --strict
-          base64 --decode /tmp/symphoneer-hub.zip.b64 > /tmp/symphoneer-hub.zip
+          base64 --decode --ignore-garbage /tmp/symphoneer-hub.zip.b64 > /tmp/symphoneer-hub.zip
           printf '%s  %s\n' 'bfb188bee4fac4cb991ca88eb27b6e6a05c1717d73ef4f1125bb601c9c5d980b' '/tmp/symphoneer-hub.zip' | sha256sum --check --strict
           unzip -t /tmp/symphoneer-hub.zip
           mkdir -p /tmp/symphoneer-hub-unpacked
