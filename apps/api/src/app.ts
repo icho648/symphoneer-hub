@@ -1,23 +1,27 @@
+import cors from "cors";
+import express, { type Express, type Request } from "express";
+import { pinoHttp } from "pino-http";
 import {
   CreateInstallationSchema,
   CreatePairingCodeSchema,
+  PairConnectorSchema,
+  PauseAttemptSchema,
   createOpaqueToken,
   createPairingCode,
   digestSecret,
   normalizePairingCode,
-  PairConnectorSchema,
-  PauseAttemptSchema,
-  type RuntimeCommand,
   redact,
+  type RuntimeCommand,
 } from "@symphoneer-hub/contracts";
 import type { HubRepository } from "@symphoneer-hub/database";
-import type { CommandQueue, FixedWindowRateLimiter, PresenceStore } from "@symphoneer-hub/relay";
-import cors from "cors";
-import express, { type Request } from "express";
-import type pino from "pino";
-import pinoHttp from "pino-http";
-import { type AuthenticatedRequest, createAuthMiddleware } from "./auth.js";
+import type {
+  CommandQueue,
+  FixedWindowRateLimiter,
+  PresenceStore,
+} from "@symphoneer-hub/relay";
+import type { Logger } from "pino";
 import type { ApiConfig } from "./config.js";
+import { type AuthenticatedRequest, createAuthMiddleware } from "./auth.js";
 import { ApiError, errorHandler } from "./errors.js";
 
 export type ApiDependencies = {
@@ -26,7 +30,7 @@ export type ApiDependencies = {
   commandQueue: CommandQueue;
   presence: PresenceStore;
   pairingLimiter: FixedWindowRateLimiter;
-  logger: pino.Logger;
+  logger: Logger;
   redisPing: () => Promise<void>;
 };
 
@@ -39,13 +43,29 @@ function parseBody<T>(
   return parsed.data;
 }
 
-function installationId(request: Request): string {
-  const value = request.params.installationId;
-  if (!value) throw new ApiError(400, "invalid_installation", "installation ID is required");
+function routeParam(
+  request: Request,
+  name: string,
+  code: string,
+  message: string,
+): string {
+  const value = request.params[name];
+  if (typeof value !== "string" || value.length === 0) {
+    throw new ApiError(400, code, message);
+  }
   return value;
 }
 
-export function createApiApp(dependencies: ApiDependencies) {
+function installationId(request: Request): string {
+  return routeParam(
+    request,
+    "installationId",
+    "invalid_installation",
+    "installation ID is required",
+  );
+}
+
+export function createApiApp(dependencies: ApiDependencies): Express {
   const { config, repository, commandQueue, logger } = dependencies;
   const app = express();
 
@@ -65,7 +85,8 @@ export function createApiApp(dependencies: ApiDependencies) {
       serializers: {
         req: (request) => ({ method: request.method, url: request.url }),
         res: (response) => ({ statusCode: response.statusCode }),
-        err: (error) => redact({ type: error.type, message: error.message, stack: error.stack }),
+        err: (error) =>
+          redact({ type: error.type, message: error.message, stack: error.stack }),
       },
     }),
   );
@@ -82,7 +103,7 @@ export function createApiApp(dependencies: ApiDependencies) {
     try {
       await Promise.all([repository.ping(), dependencies.redisPing()]);
       response.json({ status: "ok" });
-    } catch (error) {
+    } catch {
       next(new ApiError(503, "not_ready", "database or relay is unavailable"));
     }
   });
@@ -156,12 +177,17 @@ export function createApiApp(dependencies: ApiDependencies) {
     });
   });
 
-  app.get("/v1/installations/:installationId/snapshot", authenticate, async (request, response) => {
-    const user = (request as AuthenticatedRequest).user;
-    const snapshot = await repository.getSnapshot(user.id, installationId(request));
-    if (!snapshot) throw new ApiError(404, "snapshot_not_found", "runtime snapshot not found");
-    response.json(snapshot);
-  });
+  app.get(
+    "/v1/installations/:installationId/snapshot",
+    authenticate,
+    async (request, response) => {
+      const user = (request as AuthenticatedRequest).user;
+      const snapshot = await repository.getSnapshot(user.id, installationId(request));
+      if (!snapshot)
+        throw new ApiError(404, "snapshot_not_found", "runtime snapshot not found");
+      response.json(snapshot);
+    },
+  );
 
   app.post(
     "/v1/installations/:installationId/commands/pause-attempt",
@@ -171,7 +197,11 @@ export function createApiApp(dependencies: ApiDependencies) {
       const user = (request as AuthenticatedRequest).user;
       const idempotencyKey = request.header("idempotency-key")?.trim();
       if (!idempotencyKey)
-        throw new ApiError(400, "idempotency_key_required", "Idempotency-Key header is required");
+        throw new ApiError(
+          400,
+          "idempotency_key_required",
+          "Idempotency-Key header is required",
+        );
       const command: RuntimeCommand = {
         kind: "pause_attempt",
         idempotencyKey,
@@ -221,9 +251,17 @@ export function createApiApp(dependencies: ApiDependencies) {
     authenticate,
     async (request, response) => {
       const user = (request as AuthenticatedRequest).user;
-      const commandId = request.params.commandId;
-      if (!commandId) throw new ApiError(400, "invalid_command", "command ID is required");
-      const row = await repository.getCommandForOwner(user.id, installationId(request), commandId);
+      const commandId = routeParam(
+        request,
+        "commandId",
+        "invalid_command",
+        "command ID is required",
+      );
+      const row = await repository.getCommandForOwner(
+        user.id,
+        installationId(request),
+        commandId,
+      );
       if (!row) throw new ApiError(404, "command_not_found", "command not found");
       response.json({ command: row });
     },
