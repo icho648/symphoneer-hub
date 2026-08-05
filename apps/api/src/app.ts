@@ -13,9 +13,9 @@ import {
 import type { HubRepository } from "@symphoneer-hub/database";
 import type { CommandQueue, FixedWindowRateLimiter, PresenceStore } from "@symphoneer-hub/relay";
 import cors from "cors";
-import express, { type Request } from "express";
+import express, { type Express, type Request } from "express";
 import type pino from "pino";
-import pinoHttp from "pino-http";
+import { pinoHttp } from "pino-http";
 import { type AuthenticatedRequest, createAuthMiddleware } from "./auth.js";
 import type { ApiConfig } from "./config.js";
 import { ApiError, errorHandler } from "./errors.js";
@@ -39,13 +39,24 @@ function parseBody<T>(
   return parsed.data;
 }
 
-function installationId(request: Request): string {
-  const value = request.params.installationId;
-  if (!value) throw new ApiError(400, "invalid_installation", "installation ID is required");
+function routeParam(request: Request, name: string, code: string, message: string): string {
+  const value = request.params[name];
+  if (typeof value !== "string" || value.length === 0) {
+    throw new ApiError(400, code, message);
+  }
   return value;
 }
 
-export function createApiApp(dependencies: ApiDependencies) {
+function installationId(request: Request): string {
+  return routeParam(
+    request,
+    "installationId",
+    "invalid_installation",
+    "installation ID is required",
+  );
+}
+
+export function createApiApp(dependencies: ApiDependencies): Express {
   const { config, repository, commandQueue, logger } = dependencies;
   const app = express();
 
@@ -221,8 +232,12 @@ export function createApiApp(dependencies: ApiDependencies) {
     authenticate,
     async (request, response) => {
       const user = (request as AuthenticatedRequest).user;
-      const commandId = request.params.commandId;
-      if (!commandId) throw new ApiError(400, "invalid_command", "command ID is required");
+      const commandId = routeParam(
+        request,
+        "commandId",
+        "invalid_command",
+        "command ID is required",
+      );
       const row = await repository.getCommandForOwner(user.id, installationId(request), commandId);
       if (!row) throw new ApiError(404, "command_not_found", "command not found");
       response.json({ command: row });

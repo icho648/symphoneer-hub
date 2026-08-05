@@ -38,8 +38,11 @@ function tokenFromRequest(request: IncomingMessage): string | null {
 export class ConnectorGateway {
   private readonly server = new WebSocketServer({ noServer: true, maxPayload: 1024 * 1024 });
   private readonly connections = new Map<string, Connection>();
+  private readonly dependencies: GatewayDependencies;
 
-  constructor(private readonly dependencies: GatewayDependencies) {}
+  constructor(dependencies: GatewayDependencies) {
+    this.dependencies = dependencies;
+  }
 
   async start(): Promise<void> {
     await this.dependencies.subscriber.subscribe((installationId, payload) => {
