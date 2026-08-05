@@ -34,6 +34,8 @@ export function safeDigestEqual(left: string, right: string): boolean {
 
 const secretKeyPattern = /(authorization|cookie|token|secret|password|api[-_]?key|credential)/i;
 
+export function redact(value: Record<string, unknown>, depth?: number): Record<string, unknown>;
+export function redact(value: unknown, depth?: number): unknown;
 export function redact(value: unknown, depth = 0): unknown {
   if (depth > 8) return "[truncated]";
   if (Array.isArray(value)) return value.map((item) => redact(item, depth + 1));
