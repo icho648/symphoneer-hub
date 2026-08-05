@@ -8,7 +8,7 @@ import {
   FixedWindowRateLimiter,
   PresenceStore,
 } from "@symphoneer-hub/relay";
-import pino from "pino";
+import { pino } from "pino";
 import { createApiApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { ConnectorGateway } from "./websocket-gateway.js";
