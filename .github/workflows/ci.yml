@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, agent/fix-strict-typecheck-v2]
 
 jobs:
   check:
