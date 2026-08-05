@@ -1,4 +1,4 @@
-import { Queue, Worker, type JobsOptions, type Processor } from "bullmq";
+import { type JobsOptions, type Processor, Queue, Worker } from "bullmq";
 import Redis from "ioredis";
 
 const COMMAND_QUEUE = "symphoneer-hub:commands";

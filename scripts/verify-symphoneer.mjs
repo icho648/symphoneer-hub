@@ -16,7 +16,10 @@ function git(args, { optional = false } = {}) {
 }
 
 function nulPaths(output) {
-  return output.split("\0").map((path) => path.trim()).filter(Boolean);
+  return output
+    .split("\0")
+    .map((path) => path.trim())
+    .filter(Boolean);
 }
 
 function workingTreePaths() {

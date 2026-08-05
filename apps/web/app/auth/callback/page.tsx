@@ -17,7 +17,13 @@ export default function AuthCallback() {
         if (error) throw error;
         window.location.replace("/");
       })
-      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Sign-in failed"));
+      .catch((error: unknown) =>
+        setMessage(error instanceof Error ? error.message : "Sign-in failed"),
+      );
   }, []);
-  return <main className="center-card"><p>{message}</p></main>;
+  return (
+    <main className="center-card">
+      <p>{message}</p>
+    </main>
+  );
 }

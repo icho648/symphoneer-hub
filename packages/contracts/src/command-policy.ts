@@ -24,7 +24,8 @@ export function canTransitionCommand(from: CommandStatus, to: CommandStatus): bo
 }
 
 export function assertCommandTransition(from: CommandStatus, to: CommandStatus): void {
-  if (!canTransitionCommand(from, to)) throw new Error(`invalid command transition: ${from} -> ${to}`);
+  if (!canTransitionCommand(from, to))
+    throw new Error(`invalid command transition: ${from} -> ${to}`);
 }
 
 export function isCommandExpired(expiresAt: string | Date, now = new Date()): boolean {

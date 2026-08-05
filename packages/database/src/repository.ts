@@ -1,12 +1,12 @@
-import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import {
-  canTransitionCommand,
-  sameIdempotentCommand,
   type CommandStatus,
+  canTransitionCommand,
   type RuntimeCommand,
   type RuntimeEventSummary,
   type RuntimeSnapshot,
+  sameIdempotentCommand,
 } from "@symphoneer-hub/contracts";
+import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { Database } from "./client.js";
 import {
   auditLogs,
@@ -49,7 +49,8 @@ export class HubRepository {
         ),
       )
       .limit(1);
-    if (!row) throw new RepositoryError("runtime_not_found", "runtime is not paired to this installation");
+    if (!row)
+      throw new RepositoryError("runtime_not_found", "runtime is not paired to this installation");
   }
 
   async createInstallation(ownerId: string, name: string) {
@@ -86,10 +87,7 @@ export class HubRepository {
     await this.db
       .delete(pairingCodes)
       .where(
-        and(
-          eq(pairingCodes.installationId, input.installationId),
-          isNull(pairingCodes.consumedAt),
-        ),
+        and(eq(pairingCodes.installationId, input.installationId), isNull(pairingCodes.consumedAt)),
       );
     const [row] = await this.db
       .insert(pairingCodes)
@@ -122,7 +120,8 @@ export class HubRepository {
         )
         .for("update")
         .limit(1);
-      if (!pairing) throw new RepositoryError("invalid_pairing_code", "pairing code is invalid or expired");
+      if (!pairing)
+        throw new RepositoryError("invalid_pairing_code", "pairing code is invalid or expired");
 
       const [installation] = await tx
         .select({ ownerId: installations.ownerId })
@@ -154,7 +153,8 @@ export class HubRepository {
           },
         })
         .returning();
-      if (!credential) throw new RepositoryError("write_failed", "connector credential was not created");
+      if (!credential)
+        throw new RepositoryError("write_failed", "connector credential was not created");
 
       await tx.insert(auditLogs).values({
         ownerId: installation.ownerId,
@@ -181,10 +181,7 @@ export class HubRepository {
       .from(connectorCredentials)
       .innerJoin(installations, eq(installations.id, connectorCredentials.installationId))
       .where(
-        and(
-          eq(connectorCredentials.tokenHash, tokenHash),
-          isNull(connectorCredentials.revokedAt),
-        ),
+        and(eq(connectorCredentials.tokenHash, tokenHash), isNull(connectorCredentials.revokedAt)),
       )
       .limit(1);
     return row ?? null;
@@ -236,7 +233,11 @@ export class HubRepository {
         })),
       )
       .onConflictDoNothing({
-        target: [runtimeEvents.installationId, runtimeEvents.runtimeId, runtimeEvents.nativeEventId],
+        target: [
+          runtimeEvents.installationId,
+          runtimeEvents.runtimeId,
+          runtimeEvents.nativeEventId,
+        ],
       });
   }
 
@@ -484,7 +485,9 @@ export class HubRepository {
     return this.db
       .select({ id: commands.id })
       .from(commands)
-      .where(sql`${commands.status} in ('created', 'queued', 'delivering') and ${commands.expiresAt} > now()`)
+      .where(
+        sql`${commands.status} in ('created', 'queued', 'delivering') and ${commands.expiresAt} > now()`,
+      )
       .limit(limit);
   }
 

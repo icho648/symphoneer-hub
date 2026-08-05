@@ -13,7 +13,8 @@ export function exponentialBackoff({
   jitterRatio = 0.2,
   random = Math.random,
 }: BackoffOptions): number {
-  if (!Number.isInteger(attempt) || attempt < 0) throw new Error("attempt must be a non-negative integer");
+  if (!Number.isInteger(attempt) || attempt < 0)
+    throw new Error("attempt must be a non-negative integer");
   if (baseMs <= 0 || maxMs < baseMs) throw new Error("invalid backoff bounds");
   if (jitterRatio < 0 || jitterRatio > 1) throw new Error("jitterRatio must be between 0 and 1");
   const capped = Math.min(maxMs, baseMs * 2 ** attempt);

@@ -19,7 +19,6 @@ export function loadConnectorConfig(environment: NodeJS.ProcessEnv = process.env
   return {
     ...parsed,
     statePath:
-      parsed.CONNECTOR_STATE_PATH ??
-      join(homedir(), ".config", "symphoneer-hub", "connector.json"),
+      parsed.CONNECTOR_STATE_PATH ?? join(homedir(), ".config", "symphoneer-hub", "connector.json"),
   };
 }

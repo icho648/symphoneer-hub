@@ -1,27 +1,23 @@
-import cors from "cors";
-import express, { type Request } from "express";
-import pinoHttp from "pino-http";
 import {
   CreateInstallationSchema,
   CreatePairingCodeSchema,
-  PairConnectorSchema,
-  PauseAttemptSchema,
   createOpaqueToken,
   createPairingCode,
   digestSecret,
   normalizePairingCode,
-  redact,
+  PairConnectorSchema,
+  PauseAttemptSchema,
   type RuntimeCommand,
+  redact,
 } from "@symphoneer-hub/contracts";
 import type { HubRepository } from "@symphoneer-hub/database";
-import type {
-  CommandQueue,
-  FixedWindowRateLimiter,
-  PresenceStore,
-} from "@symphoneer-hub/relay";
+import type { CommandQueue, FixedWindowRateLimiter, PresenceStore } from "@symphoneer-hub/relay";
+import cors from "cors";
+import express, { type Request } from "express";
 import type pino from "pino";
-import type { ApiConfig } from "./config.js";
+import pinoHttp from "pino-http";
 import { type AuthenticatedRequest, createAuthMiddleware } from "./auth.js";
+import type { ApiConfig } from "./config.js";
 import { ApiError, errorHandler } from "./errors.js";
 
 export type ApiDependencies = {
@@ -34,7 +30,10 @@ export type ApiDependencies = {
   redisPing: () => Promise<void>;
 };
 
-function parseBody<T>(schema: { safeParse(value: unknown): { success: true; data: T } | { success: false } }, value: unknown): T {
+function parseBody<T>(
+  schema: { safeParse(value: unknown): { success: true; data: T } | { success: false } },
+  value: unknown,
+): T {
   const parsed = schema.safeParse(value);
   if (!parsed.success) throw new ApiError(400, "invalid_request", "request body is invalid");
   return parsed.data;
@@ -70,7 +69,12 @@ export function createApiApp(dependencies: ApiDependencies) {
       },
     }),
   );
-  app.use(cors({ origin: config.WEB_ORIGIN, allowedHeaders: ["authorization", "content-type", "idempotency-key", "x-dev-user-id"] }));
+  app.use(
+    cors({
+      origin: config.WEB_ORIGIN,
+      allowedHeaders: ["authorization", "content-type", "idempotency-key", "x-dev-user-id"],
+    }),
+  );
   app.use(express.json({ limit: "512kb" }));
 
   app.get("/healthz/live", (_request, response) => response.json({ status: "ok" }));
@@ -104,24 +108,31 @@ export function createApiApp(dependencies: ApiDependencies) {
     response.json({ installations: enriched });
   });
 
-  app.post("/v1/installations/:installationId/pairing-codes", authenticate, async (request, response) => {
-    const input = parseBody(CreatePairingCodeSchema, request.body ?? {});
-    const user = (request as AuthenticatedRequest).user;
-    const code = createPairingCode();
-    const normalized = normalizePairingCode(code);
-    const expiresAt = new Date(Date.now() + input.ttlSeconds * 1000);
-    await repository.createPairingCode({
-      ownerId: user.id,
-      installationId: installationId(request),
-      codeHash: digestSecret(normalized, config.PAIRING_PEPPER),
-      expiresAt,
-    });
-    response.status(201).json({ code, expiresAt: expiresAt.toISOString() });
-  });
+  app.post(
+    "/v1/installations/:installationId/pairing-codes",
+    authenticate,
+    async (request, response) => {
+      const input = parseBody(CreatePairingCodeSchema, request.body ?? {});
+      const user = (request as AuthenticatedRequest).user;
+      const code = createPairingCode();
+      const normalized = normalizePairingCode(code);
+      const expiresAt = new Date(Date.now() + input.ttlSeconds * 1000);
+      await repository.createPairingCode({
+        ownerId: user.id,
+        installationId: installationId(request),
+        codeHash: digestSecret(normalized, config.PAIRING_PEPPER),
+        expiresAt,
+      });
+      response.status(201).json({ code, expiresAt: expiresAt.toISOString() });
+    },
+  );
 
   app.post("/v1/connectors/pair", async (request, response) => {
     const input = parseBody(PairConnectorSchema, request.body);
-    const rateKey = digestSecret(request.ip || request.socket.remoteAddress || "unknown", config.PAIRING_PEPPER).slice(0, 32);
+    const rateKey = digestSecret(
+      request.ip || request.socket.remoteAddress || "unknown",
+      config.PAIRING_PEPPER,
+    ).slice(0, 32);
     if (!(await dependencies.pairingLimiter.consume(`pair:${rateKey}`, 10, 60))) {
       throw new ApiError(429, "pairing_rate_limited", "too many pairing attempts");
     }
@@ -152,56 +163,71 @@ export function createApiApp(dependencies: ApiDependencies) {
     response.json(snapshot);
   });
 
-  app.post("/v1/installations/:installationId/commands/pause-attempt", authenticate, async (request, response) => {
-    const input = parseBody(PauseAttemptSchema, request.body);
-    const user = (request as AuthenticatedRequest).user;
-    const idempotencyKey = request.header("idempotency-key")?.trim();
-    if (!idempotencyKey) throw new ApiError(400, "idempotency_key_required", "Idempotency-Key header is required");
-    const command: RuntimeCommand = {
-      kind: "pause_attempt",
-      idempotencyKey,
-      attemptId: input.attemptId,
-      expectedEventSequence: input.expectedEventSequence,
-      expectedAttemptUpdatedAt: input.expectedAttemptUpdatedAt,
-    };
-    const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
-    const created = await repository.createCommand({
-      ownerId: user.id,
-      installationId: installationId(request),
-      runtimeId: input.runtimeId,
-      targetId: input.attemptId,
-      idempotencyKey,
-      expectedEventSequence: input.expectedEventSequence,
-      expectedTargetUpdatedAt: new Date(input.expectedAttemptUpdatedAt),
-      command,
-      expiresAt,
-    });
-    const row = created.command;
-    if (row.status === "created") {
-      try {
-        await commandQueue.enqueue(row.id);
-        await repository.setCommandStatus({ commandId: row.id, status: "queued" });
-      } catch {
-        throw new ApiError(503, "relay_unavailable", `command ${row.id} was persisted but could not be queued; retry with the same idempotency key`);
+  app.post(
+    "/v1/installations/:installationId/commands/pause-attempt",
+    authenticate,
+    async (request, response) => {
+      const input = parseBody(PauseAttemptSchema, request.body);
+      const user = (request as AuthenticatedRequest).user;
+      const idempotencyKey = request.header("idempotency-key")?.trim();
+      if (!idempotencyKey)
+        throw new ApiError(400, "idempotency_key_required", "Idempotency-Key header is required");
+      const command: RuntimeCommand = {
+        kind: "pause_attempt",
+        idempotencyKey,
+        attemptId: input.attemptId,
+        expectedEventSequence: input.expectedEventSequence,
+        expectedAttemptUpdatedAt: input.expectedAttemptUpdatedAt,
+      };
+      const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
+      const created = await repository.createCommand({
+        ownerId: user.id,
+        installationId: installationId(request),
+        runtimeId: input.runtimeId,
+        targetId: input.attemptId,
+        idempotencyKey,
+        expectedEventSequence: input.expectedEventSequence,
+        expectedTargetUpdatedAt: new Date(input.expectedAttemptUpdatedAt),
+        command,
+        expiresAt,
+      });
+      const row = created.command;
+      if (row.status === "created") {
+        try {
+          await commandQueue.enqueue(row.id);
+          await repository.setCommandStatus({ commandId: row.id, status: "queued" });
+        } catch {
+          throw new ApiError(
+            503,
+            "relay_unavailable",
+            `command ${row.id} was persisted but could not be queued; retry with the same idempotency key`,
+          );
+        }
       }
-    }
-    const terminal = ["succeeded", "rejected", "conflict", "expired", "failed"].includes(row.status);
-    response.status(terminal ? 200 : 202).json({
-      commandId: row.id,
-      status: row.status === "created" ? "queued" : row.status,
-      expiresAt: row.expiresAt.toISOString(),
-      replayed: !created.created,
-    });
-  });
+      const terminal = ["succeeded", "rejected", "conflict", "expired", "failed"].includes(
+        row.status,
+      );
+      response.status(terminal ? 200 : 202).json({
+        commandId: row.id,
+        status: row.status === "created" ? "queued" : row.status,
+        expiresAt: row.expiresAt.toISOString(),
+        replayed: !created.created,
+      });
+    },
+  );
 
-  app.get("/v1/installations/:installationId/commands/:commandId", authenticate, async (request, response) => {
-    const user = (request as AuthenticatedRequest).user;
-    const commandId = request.params.commandId;
-    if (!commandId) throw new ApiError(400, "invalid_command", "command ID is required");
-    const row = await repository.getCommandForOwner(user.id, installationId(request), commandId);
-    if (!row) throw new ApiError(404, "command_not_found", "command not found");
-    response.json({ command: row });
-  });
+  app.get(
+    "/v1/installations/:installationId/commands/:commandId",
+    authenticate,
+    async (request, response) => {
+      const user = (request as AuthenticatedRequest).user;
+      const commandId = request.params.commandId;
+      if (!commandId) throw new ApiError(400, "invalid_command", "command ID is required");
+      const row = await repository.getCommandForOwner(user.id, installationId(request), commandId);
+      if (!row) throw new ApiError(404, "command_not_found", "command not found");
+      response.json({ command: row });
+    },
+  );
 
   app.use(errorHandler);
   return app;

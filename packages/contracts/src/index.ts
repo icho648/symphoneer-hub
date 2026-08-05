@@ -3,11 +3,11 @@ import { z } from "zod";
 export { exponentialBackoff } from "./backoff.js";
 export {
   assertCommandTransition,
+  type CommandStatus,
   canTransitionCommand,
+  type IdempotentCommandIdentity,
   isCommandExpired,
   sameIdempotentCommand,
-  type CommandStatus,
-  type IdempotentCommandIdentity,
 } from "./command-policy.js";
 export {
   createOpaqueToken,

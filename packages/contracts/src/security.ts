@@ -1,7 +1,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 export function createOpaqueToken(bytes = 32): string {
-  if (!Number.isInteger(bytes) || bytes < 16) throw new Error("token entropy must be at least 16 bytes");
+  if (!Number.isInteger(bytes) || bytes < 16)
+    throw new Error("token entropy must be at least 16 bytes");
   return randomBytes(bytes).toString("base64url");
 }
 
@@ -44,7 +45,10 @@ export function redact(value: unknown, depth = 0): unknown {
       ]),
     );
   }
-  if (typeof value === "string" && /^(bearer\s+|sb_(secret|publishable)_|gh[pousr]_)/i.test(value)) {
+  if (
+    typeof value === "string" &&
+    /^(bearer\s+|sb_(secret|publishable)_|gh[pousr]_)/i.test(value)
+  ) {
     return "[redacted]";
   }
   return value;

@@ -17,7 +17,7 @@ const required = [
   "VALIDATION.md",
   "scripts/verify-symphoneer.mjs",
   "scripts/new-migration.mjs",
-  "packages/database/migrations/0000_initial.sql"
+  "packages/database/migrations/0000_initial.sql",
 ];
 
 await Promise.all(required.map((path) => access(new URL(`../${path}`, import.meta.url))));
@@ -26,7 +26,7 @@ const forbiddenChecks = [
   ["apps/api/src", "@symphoneer/runtime"],
   ["apps/worker/src", "@symphoneer/runtime"],
   ["packages/database/src", "@symphoneer/runtime"],
-  ["packages/relay/src", "@symphoneer/runtime"]
+  ["packages/relay/src", "@symphoneer/runtime"],
 ];
 
 for (const [directory, token] of forbiddenChecks) {

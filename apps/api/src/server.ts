@@ -1,14 +1,14 @@
 import { createServer } from "node:http";
-import pino from "pino";
 import { redact } from "@symphoneer-hub/contracts";
 import { createDatabase, HubRepository } from "@symphoneer-hub/database";
 import {
   CommandQueue,
   CommandSubscriber,
+  createRedis,
   FixedWindowRateLimiter,
   PresenceStore,
-  createRedis,
 } from "@symphoneer-hub/relay";
+import pino from "pino";
 import { createApiApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { ConnectorGateway } from "./websocket-gateway.js";
@@ -64,7 +64,8 @@ const app = createApiApp({
 });
 const server = createServer(app);
 server.on("upgrade", (request, socket, head) => {
-  const pathname = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`).pathname;
+  const pathname = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`)
+    .pathname;
   if (pathname !== "/v1/connectors/ws") {
     socket.destroy();
     return;

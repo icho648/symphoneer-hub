@@ -9,5 +9,11 @@
     "noCheck": true,
     "skipLibCheck": true
   },
-  "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", "scripts/**/*.ts", "drizzle.config.ts"]
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "scripts/**/*.ts",
+    "drizzle.config.ts"
+  ]
 }

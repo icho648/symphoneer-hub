@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from "express";
 import { RepositoryError } from "@symphoneer-hub/database";
+import type { NextFunction, Request, Response } from "express";
 
 export class ApiError extends Error {
   constructor(
@@ -12,7 +12,12 @@ export class ApiError extends Error {
   }
 }
 
-export function errorHandler(error: unknown, _request: Request, response: Response, _next: NextFunction) {
+export function errorHandler(
+  error: unknown,
+  _request: Request,
+  response: Response,
+  _next: NextFunction,
+) {
   if (error instanceof ApiError) {
     response.status(error.status).json({ error: { code: error.code, message: error.message } });
     return;
@@ -29,5 +34,7 @@ export function errorHandler(error: unknown, _request: Request, response: Respon
     response.status(status).json({ error: { code: error.code, message: error.message } });
     return;
   }
-  response.status(500).json({ error: { code: "internal_error", message: "unexpected server error" } });
+  response
+    .status(500)
+    .json({ error: { code: "internal_error", message: "unexpected server error" } });
 }

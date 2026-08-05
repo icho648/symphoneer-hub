@@ -1,10 +1,10 @@
 import {
-  LocalRuntimeCommandResultSchema,
-  LocalRuntimeEventSchema,
-  LocalRuntimeSnapshotSchema,
   type LocalRuntimeCommandResult,
+  LocalRuntimeCommandResultSchema,
   type LocalRuntimeEvent,
+  LocalRuntimeEventSchema,
   type LocalRuntimeSnapshot,
+  LocalRuntimeSnapshotSchema,
   type RuntimeCommand,
 } from "@symphoneer-hub/contracts";
 
@@ -22,9 +22,15 @@ export class RuntimeClientError extends Error {
 export class RuntimeClient {
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string, private readonly request: typeof fetch = fetch) {
+  constructor(
+    baseUrl: string,
+    private readonly request: typeof fetch = fetch,
+  ) {
     const url = new URL(baseUrl);
-    if (url.protocol !== "http:" || !["127.0.0.1", "localhost", "::1", "[::1]"].includes(url.hostname)) {
+    if (
+      url.protocol !== "http:" ||
+      !["127.0.0.1", "localhost", "::1", "[::1]"].includes(url.hostname)
+    ) {
       throw new RuntimeClientError(0, "unsafe_runtime_url", "Runtime URL must be loopback HTTP");
     }
     this.baseUrl = url.href.replace(/\/$/, "");
@@ -37,7 +43,11 @@ export class RuntimeClient {
   events(afterSequence = 0): Promise<{ events: LocalRuntimeEvent[] }> {
     return this.call(`/v1/events?after=${afterSequence}`, {
       parse(value: unknown) {
-        if (!value || typeof value !== "object" || !Array.isArray((value as { events?: unknown }).events)) {
+        if (
+          !value ||
+          typeof value !== "object" ||
+          !Array.isArray((value as { events?: unknown }).events)
+        ) {
           throw new Error("invalid event list");
         }
         return {
@@ -57,7 +67,11 @@ export class RuntimeClient {
     });
   }
 
-  private async call<T>(path: string, schema: { parse(value: unknown): T }, init: RequestInit = {}): Promise<T> {
+  private async call<T>(
+    path: string,
+    schema: { parse(value: unknown): T },
+    init: RequestInit = {},
+  ): Promise<T> {
     let response: Response;
     try {
       response = await this.request(`${this.baseUrl}${path}`, {
@@ -72,10 +86,18 @@ export class RuntimeClient {
     try {
       body = await response.json();
     } catch {
-      throw new RuntimeClientError(response.status, "invalid_runtime_response", "Runtime returned invalid JSON");
+      throw new RuntimeClientError(
+        response.status,
+        "invalid_runtime_response",
+        "Runtime returned invalid JSON",
+      );
     }
     if (!response.ok) {
-      const error = body as { error?: { code?: unknown; message?: unknown }; code?: unknown; message?: unknown };
+      const error = body as {
+        error?: { code?: unknown; message?: unknown };
+        code?: unknown;
+        message?: unknown;
+      };
       const code =
         typeof error.error?.code === "string"
           ? error.error.code
@@ -93,7 +115,11 @@ export class RuntimeClient {
     try {
       return schema.parse(body);
     } catch {
-      throw new RuntimeClientError(response.status, "invalid_runtime_response", "Runtime response violated the contract");
+      throw new RuntimeClientError(
+        response.status,
+        "invalid_runtime_response",
+        "Runtime response violated the contract",
+      );
     }
   }
 }

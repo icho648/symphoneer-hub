@@ -25,7 +25,8 @@ export function createAuthMiddleware(config: ApiConfig) {
       }
 
       const token = bearerToken(request);
-      if (!token || !jwks || !issuer) throw new ApiError(401, "not_authenticated", "valid bearer token required");
+      if (!token || !jwks || !issuer)
+        throw new ApiError(401, "not_authenticated", "valid bearer token required");
       const { payload } = await jwtVerify(token, jwks, {
         issuer,
         audience: config.SUPABASE_JWT_AUDIENCE,
@@ -36,7 +37,11 @@ export function createAuthMiddleware(config: ApiConfig) {
       (request as AuthenticatedRequest).user = { id: payload.sub };
       next();
     } catch (error) {
-      next(error instanceof ApiError ? error : new ApiError(401, "invalid_token", "token verification failed"));
+      next(
+        error instanceof ApiError
+          ? error
+          : new ApiError(401, "invalid_token", "token verification failed"),
+      );
     }
   };
 }

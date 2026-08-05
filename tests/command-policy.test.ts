@@ -19,7 +19,6 @@ test("expiry is deterministic at the boundary", () => {
   assert.equal(isCommandExpired("2026-08-05T10:00:01.000Z", now), false);
 });
 
-
 test("idempotency compares semantic command identity", () => {
   const base = {
     installationId: "installation-1",

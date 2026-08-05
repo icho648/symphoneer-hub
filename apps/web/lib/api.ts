@@ -2,7 +2,11 @@ export type AuthContext = { accessToken?: string; devUserId?: string };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export async function hubRequest<T>(path: string, auth: AuthContext, init: RequestInit = {}): Promise<T> {
+export async function hubRequest<T>(
+  path: string,
+  auth: AuthContext,
+  init: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`${apiUrl.replace(/\/$/, "")}${path}`, {
     ...init,
     headers: {
@@ -15,6 +19,7 @@ export async function hubRequest<T>(path: string, auth: AuthContext, init: Reque
     cache: "no-store",
   });
   const body = (await response.json()) as T & { error?: { code: string; message: string } };
-  if (!response.ok) throw new Error(body.error?.message ?? `Hub API failed with ${response.status}`);
+  if (!response.ok)
+    throw new Error(body.error?.message ?? `Hub API failed with ${response.status}`);
   return body;
 }

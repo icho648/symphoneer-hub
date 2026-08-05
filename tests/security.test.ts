@@ -14,8 +14,11 @@ test("secret digests are stable but pepper-bound", () => {
 });
 
 test("structured logs redact credential-shaped values", () => {
-  assert.deepEqual(redact({ authorization: "Bearer abc", nested: { deviceToken: "secret", safe: "ok" } }), {
-    authorization: "[redacted]",
-    nested: { deviceToken: "[redacted]", safe: "ok" },
-  });
+  assert.deepEqual(
+    redact({ authorization: "Bearer abc", nested: { deviceToken: "secret", safe: "ok" } }),
+    {
+      authorization: "[redacted]",
+      nested: { deviceToken: "[redacted]", safe: "ok" },
+    },
+  );
 });

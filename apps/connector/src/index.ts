@@ -1,24 +1,24 @@
 import { hostname } from "node:os";
 import {
+  type ConnectorToHubMessage,
   ConnectorToHubMessageSchema,
+  exponentialBackoff,
+  type HubToConnectorMessage,
   HubToConnectorMessageSchema,
   PairConnectorSchema,
-  exponentialBackoff,
   redact,
   sanitizeRuntimeCommandResult,
   sanitizeRuntimeEvent,
   sanitizeRuntimeSnapshot,
-  type ConnectorToHubMessage,
-  type HubToConnectorMessage,
 } from "@symphoneer-hub/contracts";
 import WebSocket from "ws";
 import { loadConnectorConfig } from "./config.js";
 import { RuntimeClient, RuntimeClientError } from "./runtime-client.js";
 import {
+  type ConnectorState,
   ConnectorStateSchema,
   readConnectorState,
   writeConnectorState,
-  type ConnectorState,
 } from "./state.js";
 
 const config = loadConnectorConfig();
@@ -42,15 +42,12 @@ async function pair(): Promise<ConnectorState> {
     runtimeId: snapshot.runtime.runtimeId,
     connectorName: hostname(),
   });
-  const response = await fetch(
-    `${config.HUB_API_URL.replace(/\/$/, "")}/v1/connectors/pair`,
-    {
-      method: "POST",
-      headers: { accept: "application/json", "content-type": "application/json" },
-      body: JSON.stringify(input),
-      signal: AbortSignal.timeout(15_000),
-    },
-  );
+  const response = await fetch(`${config.HUB_API_URL.replace(/\/$/, "")}/v1/connectors/pair`, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json" },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(15_000),
+  });
   if (!response.ok) throw new Error(`pairing failed with HTTP ${response.status}`);
   const body = ConnectorStateSchema.parse(await response.json());
   await writeConnectorState(config.statePath, body);
@@ -169,10 +166,7 @@ async function connect(current: ConnectorState): Promise<void> {
         const eventBatch = await runtime.events(eventCursor);
         const events = eventBatch.events.slice(0, 200).map(sanitizeRuntimeEvent);
         if (events.length > 0) {
-          send(
-            socket,
-            ConnectorToHubMessageSchema.parse({ type: "connector.events", events }),
-          );
+          send(socket, ConnectorToHubMessageSchema.parse({ type: "connector.events", events }));
           eventCursor = events.at(-1)?.sequence ?? eventCursor;
         }
       } catch (error) {

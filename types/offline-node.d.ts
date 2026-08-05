@@ -3,7 +3,10 @@ declare const Buffer: {
 };
 
 declare module "node:crypto" {
-  export function createHmac(algorithm: string, key: string): {
+  export function createHmac(
+    algorithm: string,
+    key: string,
+  ): {
     update(value: string, encoding?: string): { digest(encoding: string): string };
   };
   export function randomBytes(size: number): Uint8Array & { toString(encoding: string): string };

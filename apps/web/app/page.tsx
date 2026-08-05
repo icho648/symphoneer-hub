@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { hubRequest, type AuthContext } from "../lib/api";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { type AuthContext, hubRequest } from "../lib/api";
 import { getSupabaseClient } from "../lib/supabase";
 
-type Installation = { id: string; name: string; createdAt: string; updatedAt: string; online: boolean };
+type Installation = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  online: boolean;
+};
 type Attempt = { id: string; taskId: string; status: string; updatedAt: string };
 type Task = { id: string; identifier: string; title: string; state: string };
 type CommandView = {
@@ -40,7 +46,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const auth = useMemo<AuthContext>(
-    () => (devMode ? { devUserId } : session?.access_token ? { accessToken: session.access_token } : {}),
+    () =>
+      devMode ? { devUserId } : session?.access_token ? { accessToken: session.access_token } : {},
     [session],
   );
   const authenticated = devMode || Boolean(session);
@@ -92,7 +99,10 @@ export default function Home() {
     if (!name) return;
     setLoading(true);
     try {
-      await hubRequest("/v1/installations", auth, { method: "POST", body: JSON.stringify({ name }) });
+      await hubRequest("/v1/installations", auth, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
       await loadInstallations();
     } finally {
       setLoading(false);
@@ -161,8 +171,13 @@ export default function Home() {
       <main className="center-card">
         <p className="eyebrow">LOCAL-FIRST REMOTE CONTROL</p>
         <h1>Symphoneer Hub</h1>
-        <p>Inspect your local Runtime and send narrow, audited commands without exposing its loopback port.</p>
-        <button type="button" onClick={() => void signIn()}>Sign in with GitHub</button>
+        <p>
+          Inspect your local Runtime and send narrow, audited commands without exposing its loopback
+          port.
+        </p>
+        <button type="button" onClick={() => void signIn()}>
+          Sign in with GitHub
+        </button>
       </main>
     );
   }
@@ -176,7 +191,12 @@ export default function Home() {
           <p className="eyebrow">SYMPHONEER HUB</p>
           <h1>Remote task board</h1>
         </div>
-        <button type="button" className="secondary" disabled={loading} onClick={() => void createInstallation()}>
+        <button
+          type="button"
+          className="secondary"
+          disabled={loading}
+          onClick={() => void createInstallation()}
+        >
           New installation
         </button>
       </header>
@@ -185,18 +205,41 @@ export default function Home() {
         <label>
           Installation
           <select value={selectedId ?? ""} onChange={(event) => setSelectedId(event.target.value)}>
-            <option value="" disabled>Select…</option>
+            <option value="" disabled>
+              Select…
+            </option>
             {installations.map((installation) => (
-              <option key={installation.id} value={installation.id}>{installation.name}</option>
+              <option key={installation.id} value={installation.id}>
+                {installation.name}
+              </option>
             ))}
           </select>
         </label>
-        <button type="button" disabled={!selectedId} onClick={() => void createPairingCode()}>Create pairing code</button>
-        <button type="button" className="secondary" disabled={!selectedId} onClick={() => void loadSnapshot()}>Refresh</button>
+        <button type="button" disabled={!selectedId} onClick={() => void createPairingCode()}>
+          Create pairing code
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          disabled={!selectedId}
+          onClick={() => void loadSnapshot()}
+        >
+          Refresh
+        </button>
       </section>
 
-      {pairingCode ? <section className="pairing"><span>One-time code</span><strong>{pairingCode}</strong><code>PAIRING_CODE={pairingCode} pnpm dev:connector</code></section> : null}
-      {message ? <p className="notice" role="status">{message}</p> : null}
+      {pairingCode ? (
+        <section className="pairing">
+          <span>One-time code</span>
+          <strong>{pairingCode}</strong>
+          <code>PAIRING_CODE={pairingCode} pnpm dev:connector</code>
+        </section>
+      ) : null}
+      {message ? (
+        <p className="notice" role="status">
+          {message}
+        </p>
+      ) : null}
 
       <section className="status-grid">
         <article>
@@ -206,20 +249,48 @@ export default function Home() {
             {snapshot?.runtimeId ? ` · ${snapshot.runtimeId}` : ""}
           </strong>
         </article>
-        <article><span>Last sequence</span><strong>{snapshot?.eventSequence ?? "—"}</strong></article>
-        <article><span>Observed</span><strong>{snapshot ? new Date(snapshot.observedAt).toLocaleTimeString() : "—"}</strong></article>
+        <article>
+          <span>Last sequence</span>
+          <strong>{snapshot?.eventSequence ?? "—"}</strong>
+        </article>
+        <article>
+          <span>Observed</span>
+          <strong>{snapshot ? new Date(snapshot.observedAt).toLocaleTimeString() : "—"}</strong>
+        </article>
       </section>
 
       <section>
-        <div className="section-title"><h2>Attempts</h2><span>{snapshot?.snapshot.attempts.length ?? 0}</span></div>
+        <div className="section-title">
+          <h2>Attempts</h2>
+          <span>{snapshot?.snapshot.attempts.length ?? 0}</span>
+        </div>
         <div className="attempts">
           {snapshot?.snapshot.attempts.map((attempt) => {
             const task = tasks.get(attempt.taskId);
-            const pausable = !["paused", "succeeded", "failed", "timed_out", "stalled", "canceled_by_reconciliation"].includes(attempt.status);
+            const pausable = ![
+              "paused",
+              "succeeded",
+              "failed",
+              "timed_out",
+              "stalled",
+              "canceled_by_reconciliation",
+            ].includes(attempt.status);
             return (
               <article key={attempt.id} className="attempt">
-                <div><span>{task?.identifier ?? attempt.taskId}</span><h3>{task?.title ?? "Unknown task"}</h3><p>{attempt.status} · updated {new Date(attempt.updatedAt).toLocaleString()}</p></div>
-                <button type="button" disabled={!pausable} onClick={() => void pauseAttempt(attempt)}>Pause</button>
+                <div>
+                  <span>{task?.identifier ?? attempt.taskId}</span>
+                  <h3>{task?.title ?? "Unknown task"}</h3>
+                  <p>
+                    {attempt.status} · updated {new Date(attempt.updatedAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={!pausable}
+                  onClick={() => void pauseAttempt(attempt)}
+                >
+                  Pause
+                </button>
               </article>
             );
           }) ?? <p>No Runtime snapshot yet.</p>}

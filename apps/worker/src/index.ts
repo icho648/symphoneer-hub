@@ -1,19 +1,19 @@
-import pino from "pino";
-import { z } from "zod";
 import {
   HubToConnectorMessageSchema,
-  RuntimeCommandSchema,
   isCommandExpired,
+  RuntimeCommandSchema,
   redact,
 } from "@symphoneer-hub/contracts";
 import { createDatabase, HubRepository } from "@symphoneer-hub/database";
 import {
   CommandPublisher,
   CommandQueue,
-  PresenceStore,
   createCommandWorker,
   createRedis,
+  PresenceStore,
 } from "@symphoneer-hub/relay";
+import pino from "pino";
+import { z } from "zod";
 
 const config = z
   .object({ DATABASE_URL: z.string().url(), REDIS_URL: z.string().url() })
@@ -88,7 +88,11 @@ worker.on("failed", async (job, error) => {
   const configuredAttempts = typeof job.opts.attempts === "number" ? job.opts.attempts : 1;
   if (job.attemptsMade < configuredAttempts) return;
   const command = await repository.getCommand(job.data.commandId);
-  if (!command || ["succeeded", "rejected", "conflict", "expired", "failed"].includes(command.status)) return;
+  if (
+    !command ||
+    ["succeeded", "rejected", "conflict", "expired", "failed"].includes(command.status)
+  )
+    return;
   await repository.setCommandStatus({
     commandId: command.id,
     status: isCommandExpired(command.expiresAt) ? "expired" : "failed",
@@ -102,7 +106,9 @@ worker.on("failed", async (job, error) => {
   );
 });
 
-worker.on("error", (error) => logger.error({ error: redact({ message: error.message }) }, "worker error"));
+worker.on("error", (error) =>
+  logger.error({ error: redact({ message: error.message }) }, "worker error"),
+);
 logger.info("Symphoneer Hub command worker started");
 
 let stopping = false;
@@ -113,12 +119,7 @@ async function shutdown(signal: string) {
   await worker.pause();
   await worker.close();
   await queue.close();
-  await Promise.all([
-    workerRedis.quit(),
-    serviceRedis.quit(),
-    queueRedis.quit(),
-    postgres.end(),
-  ]);
+  await Promise.all([workerRedis.quit(), serviceRedis.quit(), queueRedis.quit(), postgres.end()]);
 }
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
