@@ -17,9 +17,6 @@ The `main` branch completed the full CI gate successfully with:
   backoff and capping, command transitions, expiry, and semantic idempotency reuse;
 - the Next.js production build.
 
-Deterministic orchestration fixtures are maintained and validated independently in
-`icho648/symphoneer-fixtures`; they are not part of the Hub CI gate.
-
 ## Still requires live integration
 
 CI validates compilation, migration compatibility, deterministic tests, and production builds.
