@@ -21,9 +21,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          # One 1,000-character GitHub contents payload lost a 12-character run.
-          # Reinsert the exact run at the verified offset before concatenation.
           python - <<'PY'
           from pathlib import Path
           damaged = Path('.bootstrap/f10b1.0').read_text()
@@ -32,7 +29,6 @@ jobs:
           assert len(repaired) == 1000
           Path('/tmp/f10b.1').write_text(repaired)
           PY
-
           cat \
             .bootstrap/chunk.00 \
             .bootstrap/chunk.01 \
@@ -52,21 +48,23 @@ jobs:
             .bootstrap/f10b.3 \
             .bootstrap/chunk.11 \
             > /tmp/symphoneer-hub.zip.b64
-
           printf '%s  %s\n' '07e2e14b429f2b9f79c9c3c702c4362c74aa81f3ffa0374f079054f300238d4e' '/tmp/symphoneer-hub.zip.b64' | sha256sum --check --strict
           base64 --decode /tmp/symphoneer-hub.zip.b64 > /tmp/symphoneer-hub.zip
           printf '%s  %s\n' 'bfb188bee4fac4cb991ca88eb27b6e6a05c1717d73ef4f1125bb601c9c5d980b' '/tmp/symphoneer-hub.zip' | sha256sum --check --strict
           unzip -t /tmp/symphoneer-hub.zip
           mkdir -p /tmp/symphoneer-hub-unpacked
           unzip -q /tmp/symphoneer-hub.zip -d /tmp/symphoneer-hub-unpacked
-      - name: Replace bootstrap tree with source
+      - name: Publish source without workflow mutations
         shell: bash
         run: |
           set -euo pipefail
+          cp .github/workflows/bootstrap.yml /tmp/bootstrap.yml
           find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .bootstrap -exec rm -rf {} +
           cp -a /tmp/symphoneer-hub-unpacked/symphoneer-hub/. .
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap.yml
+          rm -f .github/workflows/ci.yml
+          mkdir -p .github/workflows
+          cp /tmp/bootstrap.yml .github/workflows/bootstrap.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
