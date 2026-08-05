@@ -1,0 +1,43 @@
+name: Publish verified source tree
+
+on:
+  push:
+    paths:
+      - .github/workflows/bootstrap.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reassemble and verify archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/chunk.* > /tmp/symphoneer-hub.zip.b64
+          printf '%s  %s\n' '07e2e14b429f2b9f79c9c3c702c4362c74aa81f3ffa0374f079054f300238d4e' '/tmp/symphoneer-hub.zip.b64' | sha256sum --check --strict
+          base64 --decode /tmp/symphoneer-hub.zip.b64 > /tmp/symphoneer-hub.zip
+          printf '%s  %s\n' 'bfb188bee4fac4cb991ca88eb27b6e6a05c1717d73ef4f1125bb601c9c5d980b' '/tmp/symphoneer-hub.zip' | sha256sum --check --strict
+          unzip -t /tmp/symphoneer-hub.zip
+          mkdir -p /tmp/symphoneer-hub-unpacked
+          unzip -q /tmp/symphoneer-hub.zip -d /tmp/symphoneer-hub-unpacked
+      - name: Replace bootstrap tree with source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .bootstrap -exec rm -rf {} +
+          cp -a /tmp/symphoneer-hub-unpacked/symphoneer-hub/. .
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'build Symphoneer Hub MVP'
+          git push origin HEAD:main
