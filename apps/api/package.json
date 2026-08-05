@@ -1,0 +1,31 @@
+{
+  "name": "@symphoneer-hub/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --conditions=development watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -b",
+    "check:types": "tsc -b"
+  },
+  "dependencies": {
+    "@symphoneer-hub/contracts": "workspace:*",
+    "@symphoneer-hub/database": "workspace:*",
+    "@symphoneer-hub/relay": "workspace:*",
+    "cors": "2.8.5",
+    "express": "5.1.0",
+    "jose": "6.0.12",
+    "pino": "9.7.0",
+    "pino-http": "10.4.0",
+    "ws": "8.18.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.3",
+    "@types/ws": "8.18.1",
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}

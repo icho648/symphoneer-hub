@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/database" },
+    { "path": "packages/relay" },
+    { "path": "apps/api" },
+    { "path": "apps/worker" },
+    { "path": "apps/connector" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "types/offline-node.d.ts",
+    "packages/contracts/src/security.ts",
+    "packages/contracts/src/backoff.ts",
+    "packages/contracts/src/command-policy.ts",
+    "tests/*.test.ts"
+  ]
+}

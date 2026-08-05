@@ -1,0 +1,28 @@
+{
+  "name": "@symphoneer-hub/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "check:types": "tsc -b",
+    "db:migrate": "tsx --conditions=development src/migrate.ts",
+    "db:new": "node ../../scripts/new-migration.mjs"
+  },
+  "dependencies": {
+    "@symphoneer-hub/contracts": "workspace:*",
+    "drizzle-orm": "0.44.5",
+    "postgres": "3.4.7"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}

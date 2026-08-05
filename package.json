@@ -1,0 +1,32 @@
+{
+  "name": "symphoneer-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --stream --filter @symphoneer-hub/api --filter @symphoneer-hub/worker --filter @symphoneer-hub/web dev",
+    "dev:connector": "pnpm --filter @symphoneer-hub/connector dev",
+    "build": "tsc -b && pnpm --filter @symphoneer-hub/web build",
+    "check": "pnpm check:format && pnpm check:project && pnpm test && pnpm build",
+    "check:format": "biome check .",
+    "check:types": "tsc -b --pretty false",
+    "check:project": "node scripts/check-project.mjs",
+    "check:offline": "tsc -p tsconfig.syntax.json && node scripts/check-project.mjs && tsc -p tsconfig.offline.json && node --experimental-strip-types --test tests/*.test.ts && npm --prefix fixtures/smoke-app test",
+    "format": "biome check --write .",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "check:smoke": "npm --prefix fixtures/smoke-app test",
+    "db:migrate": "pnpm --filter @symphoneer-hub/database db:migrate",
+    "verify:symphoneer": "node scripts/verify-symphoneer.mjs",
+    "db:new": "pnpm --filter @symphoneer-hub/database db:new"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.6",
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}

@@ -1,0 +1,46 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --panel: #13171c;
+  --panel-2: #1a2027;
+  --text: #f3f6f8;
+  --muted: #9aa6b2;
+  --line: #2a323c;
+  --accent: #8be28b;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(circle at top, #17201b 0, var(--bg) 35rem); color: var(--text); }
+button, select { font: inherit; }
+button { border: 0; border-radius: 10px; padding: 0.72rem 1rem; background: var(--accent); color: #071007; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+.center-card { width: min(520px, calc(100% - 2rem)); margin: 15vh auto; padding: 2.5rem; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 30px 80px #0008; }
+.center-card h1 { font-size: clamp(2.2rem, 8vw, 4rem); margin: 0.4rem 0 1rem; letter-spacing: -0.05em; }
+.center-card p { color: var(--muted); line-height: 1.6; }
+.eyebrow { color: var(--accent) !important; letter-spacing: 0.18em; font-size: 0.72rem; font-weight: 800; }
+.shell { width: min(1100px, calc(100% - 2rem)); margin: 0 auto; padding: 3rem 0 6rem; }
+header { display: flex; justify-content: space-between; gap: 1rem; align-items: end; margin-bottom: 2rem; }
+header h1 { font-size: clamp(2rem, 5vw, 3.7rem); margin: 0; letter-spacing: -0.05em; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 0.8rem; padding: 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+label { display: grid; gap: 0.35rem; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+select { min-width: 220px; padding: 0.7rem; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; }
+.pairing { display: grid; gap: 0.5rem; margin-top: 1rem; padding: 1rem; border: 1px dashed var(--accent); border-radius: 14px; background: #142019; }
+.pairing span, .notice { color: var(--muted); }
+.pairing strong { font: 800 2rem ui-monospace, monospace; letter-spacing: 0.12em; }
+.pairing code { overflow-x: auto; color: var(--accent); }
+.status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0 2.5rem; }
+.status-grid article { padding: 1.2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.status-grid span { display: block; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; margin-bottom: 0.45rem; }
+.status-grid strong { overflow-wrap: anywhere; }
+.section-title { display: flex; align-items: center; gap: 0.7rem; }
+.section-title span { background: var(--panel-2); color: var(--muted); padding: 0.15rem 0.5rem; border-radius: 99px; }
+.attempts { display: grid; gap: 0.8rem; }
+.attempt { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.15rem; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.attempt span, .attempt p { color: var(--muted); font-size: 0.85rem; }
+.attempt h3 { margin: 0.25rem 0; }
+.attempt p { margin: 0; }
+@media (max-width: 700px) {
+  header, .attempt { align-items: stretch; flex-direction: column; }
+  .status-grid { grid-template-columns: 1fr; }
+}
