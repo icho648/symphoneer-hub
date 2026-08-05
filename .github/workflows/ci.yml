@@ -46,16 +46,16 @@ jobs:
         with:
           node-version: 22.18.0
       - run: corepack enable
-      - name: Install dependencies
+      - run: pnpm install --reporter=append-only
+      - run: pnpm db:migrate
+      - name: Run full checks
         shell: bash
         run: |
           set +e
-          pnpm install --reporter=append-only 2>&1 | tee /tmp/pnpm-install.log
+          pnpm check 2>&1 | tee /tmp/pnpm-check.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            encoded=$(tail -c 6000 /tmp/pnpm-install.log | base64 -w0)
-            printf '::error title=pnpm-install-log::%s\n' "$encoded"
+            encoded=$(tail -c 12000 /tmp/pnpm-check.log | base64 -w0)
+            printf '::error title=pnpm-check-log::%s\n' "$encoded"
             exit "$status"
           fi
-      - run: pnpm db:migrate
-      - run: pnpm check
