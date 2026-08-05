@@ -1,13 +1,14 @@
-import { RepositoryError } from "@symphoneer-hub/database";
 import type { NextFunction, Request, Response } from "express";
+import { RepositoryError } from "@symphoneer-hub/database";
 
 export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
     this.name = "ApiError";
   }
 }
