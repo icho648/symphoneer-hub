@@ -1,38 +1,50 @@
 # Validation status
 
-Validated on 2026-08-05 in the available execution environment.
+Validated on 2026-08-05 through the repository's GitHub Actions CI and the earlier
+dependency-free checks.
 
-## Passed
+## CI verified
 
-- Repository structure and authority-boundary checks.
-- TypeScript syntax check over all source files with `noCheck`, independent of installed packages.
-- Dependency-free typecheck for the security, retry, and command-policy core.
-- Seven Node tests covering pairing-code normalization and HMAC storage, secret redaction,
-  retry backoff/capping, command transitions, expiry, and semantic idempotency reuse.
-- Two deterministic `fixtures/smoke-app` tests.
+The `main` branch completed the full CI gate successfully with:
 
-## Not verified here
+- a frozen installation from the committed `pnpm-lock.yaml`;
+- PostgreSQL 17 and Redis 7.4 service containers;
+- execution of the immutable SQL migrations against PostgreSQL;
+- Biome formatting and lint checks;
+- repository structure and authority-boundary checks;
+- TypeScript builds for the API, Connector, Worker, contracts, database, and relay packages;
+- Node tests covering pairing-code normalization and HMAC storage, secret redaction, retry
+  backoff and capping, command transitions, expiry, and semantic idempotency reuse;
+- deterministic smoke-fixture tests;
+- the Next.js production build.
 
-The execution environment had no Docker, no pnpm, and no reachable npm registry. Therefore the
-following remain explicitly unverified rather than inferred from scaffolding:
+The successful full gate ran against commit
+`a2ff3ea9ce00299b58aa33eeba209432a49b3d94` before the documentation-only follow-up.
 
-- dependency resolution and `pnpm-lock.yaml` generation;
-- full `tsc -b`, Biome, Next.js build, and application package builds;
-- PostgreSQL migration execution and database integration behavior;
-- Redis/BullMQ delivery, Pub/Sub routing, and restart reconciliation;
-- Supabase GitHub OAuth and JWKS verification against a real project;
-- Browser, WebSocket, Connector-to-Runtime, and deployed end-to-end smoke tests.
+## Still requires live integration
 
-## First connected-environment gate
+CI validates compilation, migration compatibility, deterministic tests, and production builds.
+The following require configured external systems or a running local Symphoneer Runtime and
+are therefore not claimed as completed:
+
+- Supabase GitHub OAuth and JWKS verification against a real Supabase project;
+- browser sign-in and callback behavior in a deployed environment;
+- a real Connector pairing and authenticated WebSocket session;
+- synchronization from a running local Runtime;
+- an end-to-end `pause_attempt` command and acknowledgement;
+- production Redis persistence, restart, and failover behavior;
+- deployment health, TLS, secret rotation, and operational alerts.
+
+## Local verification
 
 ```bash
 corepack enable
-pnpm install
-# Commit the generated pnpm-lock.yaml, then make CI use --frozen-lockfile.
+pnpm install --frozen-lockfile
 docker compose up -d
 pnpm db:migrate
 pnpm check
 ```
 
-Then configure a real Supabase project, pair one Connector, sync one local Runtime snapshot,
-and exercise a real `pause_attempt` command before calling the MVP compatible or deployable.
+After that gate passes, configure a real Supabase project, pair one Connector, sync one local
+Runtime snapshot, and exercise a real `pause_attempt` before calling a deployment production
+ready.
