@@ -94,8 +94,5 @@ PostgreSQL and Redis services, applies the SQL migrations, and runs the complete
 gate. See [Validation](VALIDATION.md) for the distinction between CI-verified behavior and the
 remaining live-integration checks.
 
-Deterministic Symphoneer E2E fixtures are maintained separately in
-[`icho648/symphoneer-fixtures`](https://github.com/icho648/symphoneer-fixtures).
-
 See [Architecture](docs/ARCHITECTURE.md), [Threat model](docs/THREAT_MODEL.md), and
 [Runbook](docs/RUNBOOK.md).
