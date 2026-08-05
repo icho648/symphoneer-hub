@@ -1,5 +1,5 @@
 import { type JobsOptions, type Processor, Queue, Worker } from "bullmq";
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 
 const COMMAND_QUEUE = "symphoneer-hub:commands";
 const PRESENCE_TTL_SECONDS = 30;
@@ -13,7 +13,11 @@ export function createRedis(redisUrl: string, options: { worker?: boolean } = {}
 }
 
 export class PresenceStore {
-  constructor(private readonly redis: Redis) {}
+  private readonly redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
 
   async online(installationId: string, connectionId: string): Promise<void> {
     await this.redis.set(
@@ -77,7 +81,11 @@ export function createCommandWorker(connection: Redis, processor: Processor<Comm
 }
 
 export class CommandPublisher {
-  constructor(private readonly redis: Redis) {}
+  private readonly redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
 
   async publish(installationId: string, payload: string): Promise<number> {
     return this.redis.publish(`hub:command:${installationId}`, payload);
@@ -85,7 +93,11 @@ export class CommandPublisher {
 }
 
 export class CommandSubscriber {
-  constructor(private readonly redis: Redis) {}
+  private readonly redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
 
   async subscribe(handler: (installationId: string, payload: string) => void): Promise<void> {
     await this.redis.psubscribe("hub:command:*");
@@ -101,7 +113,11 @@ export class CommandSubscriber {
 }
 
 export class FixedWindowRateLimiter {
-  constructor(private readonly redis: Redis) {}
+  private readonly redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
 
   async consume(key: string, limit: number, windowSeconds: number): Promise<boolean> {
     const result = await this.redis.eval(

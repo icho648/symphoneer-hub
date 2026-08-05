@@ -20,7 +20,11 @@ import {
 } from "./schema.js";
 
 export class HubRepository {
-  constructor(private readonly db: Database) {}
+  private readonly db: Database;
+
+  constructor(db: Database) {
+    this.db = db;
+  }
 
   async assertInstallationOwner(ownerId: string, installationId: string): Promise<void> {
     const [row] = await this.db
@@ -501,11 +505,11 @@ export class HubRepository {
 }
 
 export class RepositoryError extends Error {
-  constructor(
-    readonly code: string,
-    message: string,
-  ) {
+  readonly code: string;
+
+  constructor(code: string, message: string) {
     super(message);
+    this.code = code;
     this.name = "RepositoryError";
   }
 }
