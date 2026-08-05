@@ -3,5 +3,7 @@ packages:
   - packages/*
   - fixtures/*
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true
+  sharp: true
+  msgpackr-extract: false
