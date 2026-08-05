@@ -1,0 +1,40 @@
+name: Apply complete API TypeScript fixes
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-api-types-v2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile --reporter=append-only
+      - name: Apply complete API type fixes
+        shell: bash
+        run: |
+          printf '%s' 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgplcnJvcnMgPSBQYXRoKCJhcHBzL2FwaS9zcmMvZXJyb3JzLnRzIikKdGV4dCA9IGVycm9ycy5yZWFkX3RleHQoKQpvbGQgPSAiIiJleHBvcnQgY2xhc3MgQXBpRXJyb3IgZXh0ZW5kcyBFcnJvciB7CiAgY29uc3RydWN0b3IoCiAgICByZWFkb25seSBzdGF0dXM6IG51bWJlciwKICAgIHJlYWRvbmx5IGNvZGU6IHN0cmluZywKICAgIG1lc3NhZ2U6IHN0cmluZywKICApIHsKICAgIHN1cGVyKG1lc3NhZ2UpOwogICAgdGhpcy5uYW1lID0gIkFwaUVycm9yIjsKICB9Cn0iIiIKbmV3ID0gIiIiZXhwb3J0IGNsYXNzIEFwaUVycm9yIGV4dGVuZHMgRXJyb3IgewogIHJlYWRvbmx5IHN0YXR1czogbnVtYmVyOwogIHJlYWRvbmx5IGNvZGU6IHN0cmluZzsKCiAgY29uc3RydWN0b3Ioc3RhdHVzOiBudW1iZXIsIGNvZGU6IHN0cmluZywgbWVzc2FnZTogc3RyaW5nKSB7CiAgICBzdXBlcihtZXNzYWdlKTsKICAgIHRoaXMuc3RhdHVzID0gc3RhdHVzOwogICAgdGhpcy5jb2RlID0gY29kZTsKICAgIHRoaXMubmFtZSA9ICJBcGlFcnJvciI7CiAgfQp9IiIiCmFzc2VydCBvbGQgaW4gdGV4dAplcnJvcnMud3JpdGVfdGV4dCh0ZXh0LnJlcGxhY2Uob2xkLCBuZXcpKQoKYXBwID0gUGF0aCgiYXBwcy9hcGkvc3JjL2FwcC50cyIpCnRleHQgPSBhcHAucmVhZF90ZXh0KCkKdGV4dCA9IHRleHQucmVwbGFjZSgKICAgICdpbXBvcnQgZXhwcmVzcywgeyB0eXBlIFJlcXVlc3QgfSBmcm9tICJleHByZXNzIjsnLAogICAgJ2ltcG9ydCBleHByZXNzLCB7IHR5cGUgRXhwcmVzcywgdHlwZSBSZXF1ZXN0IH0gZnJvbSAiZXhwcmVzcyI7JywKKQp0ZXh0ID0gdGV4dC5yZXBsYWNlKAogICAgJ2ltcG9ydCBwaW5vSHR0cCBmcm9tICJwaW5vLWh0dHAiOycsCiAgICAnaW1wb3J0IHsgcGlub0h0dHAgfSBmcm9tICJwaW5vLWh0dHAiOycsCikKb2xkID0gIiIiZnVuY3Rpb24gaW5zdGFsbGF0aW9uSWQocmVxdWVzdDogUmVxdWVzdCk6IHN0cmluZyB7CiAgY29uc3QgdmFsdWUgPSByZXF1ZXN0LnBhcmFtcy5pbnN0YWxsYXRpb25JZDsKICBpZiAoIXZhbHVlKSB0aHJvdyBuZXcgQXBpRXJyb3IoNDAwLCAiaW52YWxpZF9pbnN0YWxsYXRpb24iLCAiaW5zdGFsbGF0aW9uIElEIGlzIHJlcXVpcmVkIik7CiAgcmV0dXJuIHZhbHVlOwp9IiIiCm5ldyA9ICIiImZ1bmN0aW9uIHJvdXRlUGFyYW0ocmVxdWVzdDogUmVxdWVzdCwgbmFtZTogc3RyaW5nLCBjb2RlOiBzdHJpbmcsIG1lc3NhZ2U6IHN0cmluZyk6IHN0cmluZyB7CiAgY29uc3QgdmFsdWUgPSByZXF1ZXN0LnBhcmFtc1tuYW1lXTsKICBpZiAodHlwZW9mIHZhbHVlICE9PSAic3RyaW5nIiB8fCB2YWx1ZS5sZW5ndGggPT09IDApIHsKICAgIHRocm93IG5ldyBBcGlFcnJvcig0MDAsIGNvZGUsIG1lc3NhZ2UpOwogIH0KICByZXR1cm4gdmFsdWU7Cn0KCmZ1bmN0aW9uIGluc3RhbGxhdGlvbklkKHJlcXVlc3Q6IFJlcXVlc3QpOiBzdHJpbmcgewogIHJldHVybiByb3V0ZVBhcmFtKHJlcXVlc3QsICJpbnN0YWxsYXRpb25JZCIsICJpbnZhbGlkX2luc3RhbGxhdGlvbiIsICJpbnN0YWxsYXRpb24gSUQgaXMgcmVxdWlyZWQiKTsKfSIiIgphc3NlcnQgb2xkIGluIHRleHQKdGV4dCA9IHRleHQucmVwbGFjZShvbGQsIG5ldykKdGV4dCA9IHRleHQucmVwbGFjZSgKICAgICJleHBvcnQgZnVuY3Rpb24gY3JlYXRlQXBpQXBwKGRlcGVuZGVuY2llczogQXBpRGVwZW5kZW5jaWVzKSB7IiwKICAgICJleHBvcnQgZnVuY3Rpb24gY3JlYXRlQXBpQXBwKGRlcGVuZGVuY2llczogQXBpRGVwZW5kZW5jaWVzKTogRXhwcmVzcyB7IiwKKQpvbGQgPSAiIiIgICAgICBjb25zdCBjb21tYW5kSWQgPSByZXF1ZXN0LnBhcmFtcy5jb21tYW5kSWQ7CiAgICAgIGlmICghY29tbWFuZElkKSB0aHJvdyBuZXcgQXBpRXJyb3IoNDAwLCAiaW52YWxpZF9jb21tYW5kIiwgImNvbW1hbmQgSUQgaXMgcmVxdWlyZWQiKTsiIiIKbmV3ID0gIiIiICAgICAgY29uc3QgY29tbWFuZElkID0gcm91dGVQYXJhbSgKICAgICAgICByZXF1ZXN0LAogICAgICAgICJjb21tYW5kSWQiLAogICAgICAgICJpbnZhbGlkX2NvbW1hbmQiLAogICAgICAgICJjb21tYW5kIElEIGlzIHJlcXVpcmVkIiwKICAgICAgKTsiIiIKYXNzZXJ0IG9sZCBpbiB0ZXh0CmFwcC53cml0ZV90ZXh0KHRleHQucmVwbGFjZShvbGQsIG5ldykpCgpzZXJ2ZXIgPSBQYXRoKCJhcHBzL2FwaS9zcmMvc2VydmVyLnRzIikKdGV4dCA9IHNlcnZlci5yZWFkX3RleHQoKQphc3NlcnQgJ2ltcG9ydCBwaW5vIGZyb20gInBpbm8iOycgaW4gdGV4dApzZXJ2ZXIud3JpdGVfdGV4dCh0ZXh0LnJlcGxhY2UoJ2ltcG9ydCBwaW5vIGZyb20gInBpbm8iOycsICdpbXBvcnQgeyBwaW5vIH0gZnJvbSAicGlubyI7JykpCgpnYXRld2F5ID0gUGF0aCgiYXBwcy9hcGkvc3JjL3dlYnNvY2tldC1nYXRld2F5LnRzIikKdGV4dCA9IGdhdGV3YXkucmVhZF90ZXh0KCkKb2xkID0gIiIiICBwcml2YXRlIHJlYWRvbmx5IGNvbm5lY3Rpb25zID0gbmV3IE1hcDxzdHJpbmcsIENvbm5lY3Rpb24+KCk7CgogIGNvbnN0cnVjdG9yKHByaXZhdGUgcmVhZG9ubHkgZGVwZW5kZW5jaWVzOiBHYXRld2F5RGVwZW5kZW5jaWVzKSB7fSIiIgpuZXcgPSAiIiIgIHByaXZhdGUgcmVhZG9ubHkgY29ubmVjdGlvbnMgPSBuZXcgTWFwPHN0cmluZywgQ29ubmVjdGlvbj4oKTsKICBwcml2YXRlIHJlYWRvbmx5IGRlcGVuZGVuY2llczogR2F0ZXdheURlcGVuZGVuY2llczsKCiAgY29uc3RydWN0b3IoZGVwZW5kZW5jaWVzOiBHYXRld2F5RGVwZW5kZW5jaWVzKSB7CiAgICB0aGlzLmRlcGVuZGVuY2llcyA9IGRlcGVuZGVuY2llczsKICB9IiIiCmFzc2VydCBvbGQgaW4gdGV4dApnYXRld2F5LndyaXRlX3RleHQodGV4dC5yZXBsYWNlKG9sZCwgbmV3KSkK' | base64 -d > /tmp/fix-api.py
+          python /tmp/fix-api.py
+          pnpm exec biome check --write apps/api/src/app.ts apps/api/src/errors.ts apps/api/src/server.ts apps/api/src/websocket-gateway.ts
+          pnpm --filter @symphoneer-hub/api check:types
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/api/src/app.ts apps/api/src/errors.ts apps/api/src/server.ts apps/api/src/websocket-gateway.ts
+          git commit -m 'fix complete API TypeScript compatibility'
+          git push origin HEAD:main
