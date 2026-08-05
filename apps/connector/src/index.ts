@@ -29,7 +29,13 @@ let activeSocket: WebSocket | null = null;
 const inFlightCommands = new Map<string, Promise<ConnectorToHubMessage>>();
 
 function log(message: string, data: Record<string, unknown> = {}): void {
-  console.log(JSON.stringify({ time: new Date().toISOString(), message, ...redact(data) }));
+  console.log(
+    JSON.stringify({
+      time: new Date().toISOString(),
+      message,
+      details: redact(data),
+    }),
+  );
 }
 
 async function pair(): Promise<ConnectorState> {

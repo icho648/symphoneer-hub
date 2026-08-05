@@ -9,23 +9,23 @@ import {
 } from "@symphoneer-hub/contracts";
 
 export class RuntimeClientError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
     this.name = "RuntimeClientError";
   }
 }
 
 export class RuntimeClient {
   private readonly baseUrl: string;
+  private readonly request: typeof fetch;
 
-  constructor(
-    baseUrl: string,
-    private readonly request: typeof fetch = fetch,
-  ) {
+  constructor(baseUrl: string, request: typeof fetch = fetch) {
+    this.request = request;
     const url = new URL(baseUrl);
     if (
       url.protocol !== "http:" ||

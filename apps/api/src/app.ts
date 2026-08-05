@@ -93,7 +93,7 @@ export function createApiApp(dependencies: ApiDependencies): Express {
     try {
       await Promise.all([repository.ping(), dependencies.redisPing()]);
       response.json({ status: "ok" });
-    } catch (error) {
+    } catch {
       next(new ApiError(503, "not_ready", "database or relay is unavailable"));
     }
   });

@@ -12,7 +12,7 @@ import {
   createRedis,
   PresenceStore,
 } from "@symphoneer-hub/relay";
-import pino from "pino";
+import { pino } from "pino";
 import { z } from "zod";
 
 const config = z
